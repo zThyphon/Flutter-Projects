@@ -59,15 +59,17 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
             const SizedBox(height: 8.0),
             Text(date, style: AppStyle.dateStyle),
             const SizedBox(height: 28.0),
-            TextField(
-              controller: contentController,
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: "Note Content",
+            Expanded(
+              child: TextField(
+                controller: contentController,
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: "Note Content",
+                ),
+                style: AppStyle.contentStyle,
               ),
-              style: AppStyle.contentStyle,
             ),
           ],
         ),

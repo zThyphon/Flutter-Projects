@@ -93,14 +93,16 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             const SizedBox(height: 8.0),
             Text(widget.doc["creation_date"], style: AppStyle.dateStyle),
             const SizedBox(height: 20.0),
-            TextField(
-              maxLines: null,
-              controller: contentController,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: "Note Content",
+            Expanded(
+              child: TextField(
+                maxLines: null,
+                controller: contentController,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: "Note Content",
+                ),
+                style: AppStyle.contentStyle,
               ),
-              style: AppStyle.contentStyle,
             ),
           ],
         ),

@@ -40,10 +40,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                   var sharedContent = "$noteTitle\n$noteContent";
                   await Share.share(sharedContent);
                 },
-                child: const Padding(
-                  padding: EdgeInsets.all(8.0),
+                child:  Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: Row(
-                    children: [
+                    children: const [
                       Icon(Icons.share),
                       SizedBox(width: 15),
                       Text("Share Note", style: AppStyle.threedotitemsStyle),
@@ -61,10 +61,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                   // ignore: use_build_context_synchronously
                   Navigator.pop(context);
                 },
-                child: const Padding(
-                  padding: EdgeInsets.all(8.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: Row(
-                    children: [
+                    children: const [
                       Icon(Icons.delete),
                       SizedBox(width: 15),
                       Text("Delete", style: AppStyle.threedotitemsStyle),

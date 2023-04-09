@@ -1,28 +1,36 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:date_format/date_format.dart';
 import "../style/app_style.dart";
+import '../db/db_helper.dart';
+import '../models/note_model.dart';
+import 'home_screen.dart';
 
-// ignore: must_be_immutable
 class NoteEditorScreen extends StatefulWidget {
-  NoteEditorScreen(this.doc, {Key? key}) : super(key: key);
-  QueryDocumentSnapshot doc;
+  final Note note;
+  const NoteEditorScreen(this.note, {Key? key}) : super(key: key);
   @override
   State<NoteEditorScreen> createState() => _NoteEditorScreenState();
 }
 
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
+  late int colorId;
+  late String noteTitle;
+  late String noteContent;
+  late TextEditingController titleController;
+  late TextEditingController contentController;
+
+  final dbHelper = DbHelper.instance;
+  @override
+  void initState() {
+    super.initState();
+    titleController = TextEditingController(text: widget.note.getTitle());
+    contentController = TextEditingController(text: widget.note.getContent());
+  }
+
   @override
   Widget build(BuildContext context) {
-    int colorId = widget.doc['color_id'];
-    String noteTitle = widget.doc["note_title"];
-    String noteContent = widget.doc["note_content"];
-    TextEditingController titleController =
-        TextEditingController(text: noteTitle);
-    TextEditingController contentController =
-        TextEditingController(text: noteContent);
-
+    colorId = widget.note.getColorId();
     return Scaffold(
       backgroundColor: AppStyle.cardsColor[colorId],
       appBar: AppBar(
@@ -40,10 +48,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                   var sharedContent = "$noteTitle\n$noteContent";
                   await Share.share(sharedContent);
                 },
-                child:  Padding(
-                  padding: const EdgeInsets.all(8.0),
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
                   child: Row(
-                    children: const [
+                    children: [
                       Icon(Icons.share),
                       SizedBox(width: 15),
                       Text("Share Note", style: AppStyle.threedotitemsStyle),
@@ -53,18 +61,18 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               ),
               PopupMenuItem(
                 onTap: () async {
-                  var id = widget.doc.id;
-                  await FirebaseFirestore.instance
-                      .collection("Notes")
-                      .doc(id)
-                      .delete();
+                  int? id = widget.note.id;
+                  await dbHelper.delete(id!);
                   // ignore: use_build_context_synchronously
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                child: const Padding(
+                  padding: EdgeInsets.all(8.0),
                   child: Row(
-                    children: const [
+                    children: [
                       Icon(Icons.delete),
                       SizedBox(width: 15),
                       Text("Delete", style: AppStyle.threedotitemsStyle),
@@ -91,7 +99,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               style: AppStyle.titleStyle,
             ),
             const SizedBox(height: 8.0),
-            Text(widget.doc["creation_date"], style: AppStyle.dateStyle),
+            Text(widget.note.getDate(), style: AppStyle.dateStyle),
             const SizedBox(height: 20.0),
             Expanded(
               child: TextField(
@@ -110,7 +118,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppStyle.mainColor,
         onPressed: () async {
-          var id = widget.doc.id;
+          var id = widget.note.getId();
           var updatedNoteTitle = titleController.text;
           var updatedNoteContent = contentController.text;
           String updateDate = formatDate(DateTime.now(), [
@@ -125,13 +133,14 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
             "mm",
           ]).toString();
 
-          FirebaseFirestore.instance.collection("Notes").doc(id).update({
-            "note_title": updatedNoteTitle,
-            "creation_date": updateDate,
-            "note_content": updatedNoteContent,
-            "color_id": colorId
-          }).then((value) {
-            Navigator.pop(context);
+          dbHelper
+              .updateNote(
+                  id, updatedNoteTitle, updatedNoteContent, updateDate, colorId)
+              .then((value) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
           });
         },
         child: const Icon(Icons.save),

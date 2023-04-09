@@ -1,15 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import "../style/app_style.dart";
+import '../style/app_style.dart';
+import '../models/note_model.dart';
+import '../db/db_helper.dart';
 
-Widget noteCard(Function()? onTap, QueryDocumentSnapshot doc) {
+Widget noteCard(Function(Note)? onTap, Note note, Function()? refreshNotes) {
+  final dbHelper = DbHelper.instance;
+  dbHelper.initDatabase();
   return InkWell(
-    onTap: onTap,
+    onTap: () => onTap?.call(note),
     child: Container(
       padding: const EdgeInsets.all(8.0),
       margin: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: AppStyle.cardsColor[doc["color_id"]],
+        color: AppStyle.cardsColor[note.getColorId()],
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -19,7 +22,7 @@ Widget noteCard(Function()? onTap, QueryDocumentSnapshot doc) {
           const SizedBox(height: 5.0),
           Center(
             child: Text(
-              doc["note_title"],
+              note.getTitle(),
               style: const TextStyle(
                   fontFamily: "Open Sans",
                   fontWeight: FontWeight.bold,
@@ -28,10 +31,10 @@ Widget noteCard(Function()? onTap, QueryDocumentSnapshot doc) {
             ),
           ),
           const SizedBox(height: 8.0),
-          Text(doc["creation_date"], style: AppStyle.dateStyle),
+          Text(note.getDate(), style: AppStyle.dateStyle),
           const SizedBox(height: 8.0),
           Expanded(
-            child: Text(doc["note_content"],
+            child: Text(note.getContent(),
                 style: const TextStyle(
                     fontFamily: "Open Sans",
                     fontWeight: FontWeight.w500,
@@ -43,12 +46,12 @@ Widget noteCard(Function()? onTap, QueryDocumentSnapshot doc) {
           Expanded(
             child: Center(
               child: IconButton(
-                onPressed: () {
-                  var id = doc.id;
-                  FirebaseFirestore.instance
-                      .collection("Notes")
-                      .doc(id)
-                      .delete();
+                onPressed: () async {
+                  final id = note.getId();
+                  dbHelper.delete(id);
+                  if (refreshNotes != null) {
+                    refreshNotes();
+                  }
                 },
                 icon: const Icon(Icons.delete),
               ),

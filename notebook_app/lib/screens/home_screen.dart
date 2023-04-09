@@ -1,10 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import "../screens/add_note_screen.dart";
 import "../screens/note_editor.dart";
 import "../style/app_style.dart";
-
+import '../db/db_helper.dart';
 import '../widgets/note_card.dart';
+import "../models/note_model.dart";
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,6 +13,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late Future<List<dynamic>> _notesFuture;
+  var dbHelper = DbHelper.instance;
+  @override
+  void initState() {
+    super.initState();
+    _notesFuture = dbHelper.getNotes();
+  }
+
+  void refreshNotes() {
+    setState(() {
+      _notesFuture = dbHelper.getNotes();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,34 +49,30 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 20,
             ),
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance.collection("Notes").snapshots(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              child: FutureBuilder<List<dynamic>>(
+                future: _notesFuture,
+                builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(),
                     );
                   }
-                  if (snapshot.hasData) {
-                    int notesCount = snapshot.data!.docs.length;
-                    if (notesCount > 0) {
-                      return GridView(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2),
-                        children: snapshot.data!.docs
-                            .map((note) => noteCard(() {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            NoteEditorScreen(note),
-                                      ));
-                                }, note))
-                            .toList(),
-                      );
-                    }
+                  if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                    return GridView(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2),
+                      children: snapshot.data!
+                          .map((note) => noteCard((Note note) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          NoteEditorScreen(note),
+                                    ));
+                              }, Note.fromMap(note), refreshNotes))
+                          .toList(),
+                    );
                   }
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.start,

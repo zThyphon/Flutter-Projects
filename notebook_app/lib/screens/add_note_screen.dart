@@ -1,8 +1,10 @@
 import 'dart:math';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
 import "../style/app_style.dart";
+import '../models/note_model.dart';
+import '../db/db_helper.dart';
 
 class AddNoteScreen extends StatefulWidget {
   const AddNoteScreen({super.key});
@@ -29,19 +31,23 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
 
     TextEditingController titleController = TextEditingController();
     TextEditingController contentController = TextEditingController();
+
     return Scaffold(
       backgroundColor: AppStyle.cardsColor[colorId],
       appBar: AppBar(
         backgroundColor: AppStyle.cardsColor[colorId],
         elevation: 0.0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text("Add a New Note",
-            style: TextStyle(
-                color: Colors.black,
-                fontFamily: "Open Sans",
-                fontSize: 23.0,
-                fontWeight: FontWeight.w600,
-                fontStyle: FontStyle.italic)),
+        title: const Text(
+          "Add a New Note",
+          style: TextStyle(
+            color: Colors.black,
+            fontFamily: "Open Sans",
+            fontSize: 23.0,
+            fontWeight: FontWeight.w600,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -77,14 +83,19 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppStyle.mainColor,
         onPressed: () async {
-          FirebaseFirestore.instance.collection("Notes").add({
-            "note_title": titleController.text,
-            "creation_date": date,
-            "note_content": contentController.text,
-            "color_id": colorId
-          }).then((value) {
-            Navigator.pop(context);
-          });
+          final note = Note(
+            null,
+            titleController.text,
+            contentController.text,
+            date,
+            colorId,
+          );
+
+          await DbHelper.instance.addNote(note);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
         },
         child: const Icon(Icons.add),
       ),

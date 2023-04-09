@@ -43,9 +43,9 @@ class _GetStartedPageState extends State<GetStartedPage> {
                 ],
               ),
               const SizedBox(height: 50),
-              Row(
+              const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const[
+                children: [
                   Text(
                     "This application developed\n",
                     style: TextStyle(
